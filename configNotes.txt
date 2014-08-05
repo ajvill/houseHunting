@@ -1,0 +1,2 @@
+gem install curb
+gem install logger
