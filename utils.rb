@@ -1,7 +1,4 @@
 
-#GET_CITIES = "http://api.trulia.com/webservices.php?library=LocationInfo&function=getCitiesInState&state=#{@state}&apikey=#{@apikey}"
-#GET_COUNTIES  = "http://api.trulia.com/webservices.php?library=LocationInfo&function=getCountiesInState&state=#{@state}&apikey=#{@apikey}" 
-
 module ApiKey
     FILENAME = "./apikey.txt"
     attr_accessor  :apikey
