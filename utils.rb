@@ -1,3 +1,7 @@
+
+#GET_CITIES = "http://api.trulia.com/webservices.php?library=LocationInfo&function=getCitiesInState&state=#{@state}&apikey=#{@apikey}"
+#GET_COUNTIES  = "http://api.trulia.com/webservices.php?library=LocationInfo&function=getCountiesInState&state=#{@state}&apikey=#{@apikey}" 
+
 module ApiKey
     FILENAME = "./apikey.txt"
     attr_accessor  :apikey
@@ -8,36 +12,18 @@ module ApiKey
             @apikey = line
         end
         file.close
+        log.debug("ApiKey::get_apikey apikey = #{@apikey}")
         @apikey
     end
 end
 
 module ToolBox
-    require 'curl'
+    require 'curb'
 
-    module GetData
-        def getData
-             c = Curl::Easy.perform("#{@funcCall}")
-             c.perform
-             now = Time.new.to_i
-             fileName = "./data/#{now}_#{@state}_counties.xml"
-             log.debug("toXML, filename = #{fileName}")
-             toFile(c.body_str, fileName)
-         end
-     
-         def getCounties
-             getCountiesInState
-         end
-         def setApiKey
-             @apiKey = get_apikey
-             log.debug("apikey = #{@apikey}")
-         end 
-    end
-
-    module WriteToFile
+    module File_Utils
         def toFile(data, fileName)
             File.open("#{fileName}", "w") { |file| file.write("#{data}") }
         end
     end
-    include WriteToFile
+    include File_Utils
 end

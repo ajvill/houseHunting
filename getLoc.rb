@@ -3,112 +3,93 @@ require './utils'
 
 class TruliaAPI 
     include ApiKey
-    #include WriteToFile
     include ToolBox
 
-    attr_reader  :log, :apikey, :state
+    attr_reader  :log, :apikey, :state 
+    attr_accessor :dataObj, :funcCall
 
     def initialize(args={})
         @log = args[:log] || false
         @state = args[:state] || "TX"
-        @funcCall = "http://api.trulia.com/webservices.php?library=LocationInfo&function=getCitiesInState&state=#{@state}&apikey=#{@apikey}"
+        @funcCall = args[:funcCall] || false
+        @dataObj = nil
         setApiKey
-        getCities
     end
 
-    def getCitiesInState
+    def getData
+        log.debug("TruliaAPI::getData @funcCall = #{@funcCall}")
         c = Curl::Easy.perform("#{@funcCall}")
         c.perform
         now = Time.new.to_i
-        fileName = "./data/#{now}_#{@state}_cities.xml"
-        toFile(c.body_str, fileName)
-    end
-
-    def getCities
-        getCitiesInState
+        @dataObj = c.body_str
     end
 
     def setApiKey
         @apiKey = get_apikey
+        log.debug("TruliaAPI::setApiKey apikey = #{@apikey}")
+    end
+
+    def writeToFile (args={})
+        body = @dataObj
+        type = args[:type]
+        fileType = args[:fileType]
+        now = Time.new.to_i
+        fileName = "./data/#{now}_#{type}_#{state}.#{fileType}"
+        toFile(body, fileName)      #toFile is defined in ToolBox
     end 
+
+    def exportData(args = {})
+        writeToFile(args)
+    end
+
 end
 
 class CitiesLoc < TruliaAPI
-    attr_reader  :log, :apikey, :state, :funcCall
-    def initialize(args={})
-        @log = args[:log] || false
-        @state = args[:state] || "TX"
-        @funcCall = "http://api.trulia.com/webservices.php?library=LocationInfo&function=getCitiesInState&state=#{@state}&apikey=#{@apikey}"
-        setApiKey
-        getCities
-    end
 
-end
-
-=begin
-class CitiesLoc
-    include ApiKey
-    #include WriteToFile
-    include ToolBox
-
-    attr_reader  :log, :apikey, :state, :funcCall
+    attr_reader :cities #TODO need to create a cities object 
 
     def initialize(args={})
-        @log = args[:log] || false
-        @state = args[:state] || "TX"
-        @funcCall = "http://api.trulia.com/webservices.php?library=LocationInfo&function=getCitiesInState&state=#{@state}&apikey=#{@apikey}"
-        setApiKey
-        getCities
-    end
-
-    def getCitiesInState
-        c = Curl::Easy.perform("#{@funcCall}")
-        c.perform
-        now = Time.new.to_i
-        fileName = "./data/#{now}_#{@state}_cities.xml"
-        toFile(c.body_str, fileName)
+        super(args)
     end
 
     def getCities
-        getCitiesInState
+       getCitiesInState 
     end
 
-    def setApiKey
-        @apiKey = get_apikey
+    def getCitiesInState
+        @funcCall = "http://api.trulia.com/webservices.php?library=LocationInfo&function=getCitiesInState&state=#{@state}&apikey=#{@apikey}"
+        getData
+        log.debug("CitiesLoc::getCities = #{@dataObj}")
+    end
+
+    def to_file(args={})
+        fileType = args[:fileType]
+        args = { :fileType => fileType, :type => "cities" }
+        exportData(args)
     end
 end
-=end
 
-class CountiesLoc
-    include ApiKey
-    include ToolBox
+class CountiesLoc < TruliaAPI
 
-    attr_reader :log, :apikey, :state, :funcCall
+    attr_reader :counties  #TODO need to create a counties object too
 
     def initialize(args={})
-        @log = args[:log] || false
-        @state = args[:state] || "TX"
-        @funcCall = "http://api.trulia.com/webservices.php?library=LocationInfo&function=getCountiesInState&state=#{@state}&apikey=#{@apikey}"
-        setApiKey
-        getCounties
-    end
-
-    def getCountiesInState
-        c = Curl::Easy.perform("#{@funcCall}")
-        c.perform
-        now = Time.new.to_i
-        fileName = "./data/#{now}_#{@state}_counties.xml"
-        log.debug("toXML, filename = #{fileName}")
-        toFile(c.body_str, fileName)
+        super(args)
     end
 
     def getCounties
         getCountiesInState
     end
-    def setApiKey
-        @apiKey = get_apikey
-        log.debug("apikey = #{@apikey}")
+
+    def getCountiesInState
+        @funcCall = "http://api.trulia.com/webservices.php?library=LocationInfo&function=getCountiesInState&state=#{@state}&apikey=#{@apikey}"
+        getData
+        log.debug("CountiesLoc::getCountiesInState = #{@dataObj}")
     end
 
+    def to_file(args={})
+        fileType = args[:fileType]
+        args = { :fileType => fileType, :type => "counties" }
+        exportData(args)
+    end
 end
-

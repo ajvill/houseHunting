@@ -31,4 +31,19 @@ log.debug("simple_client: log = #{log}")
 ## PUT CODE HERE:  This is what I am testing 
 require './getLoc'
 #c = CitiesLoc.new(:log => log)
-c = CountiesLoc.new(:log => log)
+citiesLoc = CitiesLoc.new(
+					:log => log, 
+				  	:state => "TX"
+				 )
+
+
+
+citiesLoc.getCities()
+citiesLoc.to_file(:fileType => "xml")
+sleep(2)
+countiesLoc = CountiesLoc.new(
+					:log => log, 
+				  	:state => "TX"
+				 )
+countiesLoc.getCounties()
+countiesLoc.to_file(:fileType => "txt")
